@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ActionType {
+  CLICK
+  SCROLL
+  ADDED_VALUE
+  CHANGED_VALUE
+  REMOVED_VALUE
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String?
+  name      String?
+  avatarUrl String?
+  points    Int      @default(10)
+  role      Role     @default(USER)
+
+  locations      Location[]
+  guesses        Guess[]
+  actions        UserAction[]
+  resetTokens    PasswordResetToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Location {
+  id        String @id @default(uuid())
+
+  imageUrl  String
+
+  latitude  Float
+  longitude Float
+
+  userId    String
+  user      User @relation(fields: [userId], references: [id])
+
+  guesses   Guess[]
+
+  createdAt DateTime @default(now())
+}
+
+model Guess {
+  id String @id @default(uuid())
+
+  guessedLatitude  Float
+  guessedLongitude Float
+
+  distanceMeters Float
+
+  userId String
+  user   User @relation(fields: [userId], references: [id])
+
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model UserAction {
+  id String @id @default(uuid())
+
+  actionType ActionType
+
+  componentType String?
+  newValue      String?
+
+  url String
+
+  userId String
+  user   User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id String @id @default(uuid())
+
+  token String @unique
+
+  expiresAt DateTime
+
+  userId String
+  user   User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+}
