@@ -7,14 +7,30 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-  .setTitle('GeoTagger API')
-  .setDescription('GeoTagger REST API')
-  .setVersion('1.0')
-  .build();
+    .setTitle('GeoTagger API')
+    .setDescription('GeoTagger backend API')
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'access-token',
+    )
+    .build();
 
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, config, {
+    ignoreGlobalPrefix: false,
+  });
 
-  SwaggerModule.setup('api/docs', app, document);
+  document.security = [{ 'access-token': [] }];
+
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
