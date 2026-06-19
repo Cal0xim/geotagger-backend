@@ -21,37 +21,41 @@ enum ActionType {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String  @id @default(uuid())
+  email     String  @unique
   password  String?
   name      String?
   avatarUrl String?
-  points    Int      @default(10)
-  role      Role     @default(USER)
+  points    Int     @default(10)
+  role      Role    @default(USER)
 
-  locations      Location[]
-  guesses        Guess[]
-  actions        UserAction[]
-  resetTokens    PasswordResetToken[]
+  locations   Location[]
+  guesses     Guess[]
+  actions     UserAction[]
+  resetTokens PasswordResetToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Location {
-  id        String @id @default(uuid())
+  id String @id @default(uuid())
 
-  imageUrl  String
+  imageUrl String
+  imageKey String? // 🔥 S3 future-proofing (optional but recommended)
 
   latitude  Float
   longitude Float
 
-  userId    String
-  user      User @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  guesses   Guess[]
+  guesses Guess[]
 
   createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
 }
 
 model Guess {
@@ -63,12 +67,15 @@ model Guess {
   distanceMeters Float
 
   userId String
-  user   User @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   locationId String
   location   Location @relation(fields: [locationId], references: [id])
 
   createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([locationId])
 }
 
 model UserAction {
@@ -82,7 +89,7 @@ model UserAction {
   url String
 
   userId String
-  user   User @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
 
@@ -98,7 +105,9 @@ model PasswordResetToken {
   expiresAt DateTime
 
   userId String
-  user   User @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
